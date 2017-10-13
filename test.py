@@ -1,4 +1,4 @@
-from EMWithCycleBreaking.randomGraphGenerator import ProblemInstance
+from randomGraphGenerator import ProblemInstance
 from EMWithCycleBreaking.main import GraphEM as Baseline
 from OurMethod.main import GraphEM as OurMethod
 

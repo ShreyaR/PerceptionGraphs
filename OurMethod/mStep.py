@@ -84,6 +84,11 @@ class mStep:
 			
 			difficulty = x[k]
 
+			if difficulty==0:
+				difficulty = 0.0001
+			if difficulty==1:
+				difficulty = 0.9999
+
 			# print difficulty
 
 			H[k,k] += ( len(self.observations[edge])/(difficulty**2)

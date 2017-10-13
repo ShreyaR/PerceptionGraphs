@@ -6,7 +6,7 @@ from mStep import mStep
 
 # Add in documentation as you have more of it.
 
-f = open('results_ourmethod.txt', 'w')
+f = open('results_ourmethodv2.txt', 'w')
 
 class GraphEM:
 

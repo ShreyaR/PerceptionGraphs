@@ -196,7 +196,7 @@ from randomGraphGenerator import ProblemInstance
 
 # Add in documentation as you have more of it.
 
-f = open('results_baseline.txt', 'w')
+f = open('results_baselinev2.txt', 'w')
 
 class GraphEM:
 
@@ -330,15 +330,15 @@ class GraphEM:
 
 			forward_prob = 1
 			for x in observations[e]:
-				forward_prob /= (1.0*(1+d))
+				forward_prob *= (1.0*d)
 			for x in observations[reverse_e]:
-				forward_prob *= 1.0*d/(1+d)
+				forward_prob *= (1-d)
 
 			backward_prob = 1
 			for x in observations[reverse_e]:
-				backward_prob /= (1.0*(1+d))
+				backward_prob *= (1.0*d)
 			for x in observations[e]:
-				backward_prob *= 1.0*d/(1+d)
+				backward_prob *= 1.0*(1-d)
 
 			if forward_prob>backward_prob:
 				determined_edges[e] = forward_prob*1.0/(forward_prob+backward_prob)
