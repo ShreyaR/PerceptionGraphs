@@ -196,17 +196,20 @@ from randomGraphGenerator import ProblemInstance
 
 # Add in documentation as you have more of it.
 
-f = open('results.txt', 'w')
+f = open('results_baseline.txt', 'w')
 
 class GraphEM:
 
-	def __init__(self, flag, n, edges, workers, graph, observations, trueDAG, trueDiff):
+	def __init__(self, flag, n, edges, workers, graph, observations, trueDAG, trueDiff, numNodes, c):
 		"""Description of the class variables:
 		self.n: Number of nodes in the graph
 		self.edges: A list of undirected edges (represented as tuples) in the
 			graph.
 		self.workers: A set of worker indices.
 		"""
+
+		print "Baseline", numNodes, c
+
 		if flag:
 			self.n = 0
 			self.edges = []
@@ -411,18 +414,19 @@ class GraphEM:
 
 # for w in [5, 10, 20, 100]:
 
-for numNodes in [5, 10, 20, 50, 100]:
+# numWorkers = 20
+# for numNodes in [5, 10, 20, 50]:
 
-	for c in xrange(10):
+# 	for c in xrange(10):
 
-		pi = ProblemInstance(numNodes, 0.5, 50)
+# 		pi = ProblemInstance(numNodes, 0.5, 20)
 
-		undirected_graph = {k:[x for x in pi.graph[k]] for k in pi.graph.keys()}
-		for k in sorted(undirected_graph.keys()):
-			for v in undirected_graph[k]:
-				undirected_graph[v].append(k)
+# 		undirected_graph = {k:[x for x in pi.graph[k]] for k in pi.graph.keys()}
+# 		for k in sorted(undirected_graph.keys()):
+# 			for v in undirected_graph[k]:
+# 				undirected_graph[v].append(k)
 
-		graph_em = GraphEM(False, numNodes, pi.bidirectionalEdges, 50, undirected_graph, pi.observations, pi.graph, pi.difficulties)
-	# graph_em = GraphEM(True, 0, 0, 0, 0, 0, 0, 0)
+# 		graph_em = GraphEM(False, numNodes, pi.bidirectionalEdges, numWorkers, undirected_graph, pi.observations, pi.graph, pi.difficulties)
+# 	# graph_em = GraphEM(True, 0, 0, 0, 0, 0, 0, 0)
 
 

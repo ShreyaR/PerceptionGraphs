@@ -2,21 +2,23 @@ from cvxopt import matrix
 
 class constraints:
 
-	def __init__(self, undirG, dirEdges):
+	def __init__(self, undirG, dirEdges=None):
 		"""
 		undirG: Undirected underlying graph. Useful for identifying cycles or
 			loops in the graph. Format: dictionary, with key=node index, value
 			is list of nodes key node is connected to.
-		dirEdges: set of directed edges, where each directed edge is
+		dirEdges: list of directed edges, where each directed edge is
 			represented by a tuple. First node of tuple is from node, and
 			second node of tuple is to node.
 		"""
 
-		loops = self.getLoops(undirG)
-		cSet, x1, x2 = self.getConstraints(loops, dirEdges)
-		self.G,self.h = self.getAbMatrices(cSet, len(x1)+len(x2))
-		self.constraintVariablesToEdges = x1
-		self.constraintVariablesToPseudoEdges = x2
+		self.loops = self.getLoops(undirG)
+
+		if dirEdges is not None:
+			cSet, x1, x2 = self.getConstraints(self.loops, dirEdges)
+			self.G,self.h = self.getAbMatrices(cSet, len(x1)+len(x2))
+			self.constraintVariablesToEdges = x1
+			self.constraintVariablesToPseudoEdges = x2
 
 
 	def getLoops(self, graph):
@@ -141,20 +143,30 @@ class constraints:
 
 			miniGraph = {x:[] for x in vertices}
 
+			# print "MINIGRAPH", miniGraph
+
 			for e in loop:
 				if e in directedEdges:
 					miniGraph[e[0]].append(e[1])
 				else:
 					miniGraph[e[1]].append(e[0])
 
-			sink = 0
-			source = 0
+			sink = []
+			source = []
 
 			for k,v in miniGraph.items():
 				if len(v)==0:
-					sink = k
+					# sink = k
+					sink.append(k)
 				if len(v)==2:
-					source = k
+					# source = k
+					source.append(k)
+
+			if len(source)!=1 or len(sink)!=1:
+				continue
+			else:
+				source = source[0]
+				sink = sink[0]
 
 			# Get both parallel paths of cycle from source to sink.
 

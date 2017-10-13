@@ -1,21 +1,25 @@
-from random import uniform
+from random import uniform, choice
 from pprint import pprint
 from randomGraphGenerator import ProblemInstance
 from generateConstraints import constraints
+from mStep import mStep
 
 # Add in documentation as you have more of it.
 
-f = open('results.txt', 'w')
+f = open('results_ourmethod.txt', 'w')
 
 class GraphEM:
 
-	def __init__(self, flag, n, edges, workers, graph, observations, trueDAG, trueDiff):
+	def __init__(self, flag, n, edges, workers, graph, observations, trueDAG, trueDiff, numNodes, c):
 		"""Description of the class variables:
 		self.n: Number of nodes in the graph
 		self.edges: A list of undirected edges (represented as tuples) in the
 			graph.
 		self.workers: A set of worker indices.
 		"""
+
+		print "Our Method", numNodes, c
+
 		if flag:
 			self.n = 0
 			self.edges = []
@@ -28,7 +32,7 @@ class GraphEM:
 			self.edges = edges
 			self.workers = workers
 
-		print observations.keys()
+		# print observations.keys()
 
 		edgeDifficulty, new_graph = self.EM_v1(graph, observations)
 
@@ -43,7 +47,8 @@ class GraphEM:
 
 		f.write("%d, %.4f\n" % (n, len(newEdges.intersection(trueEdges))/(1.0*len(trueEdges))))
 
-		print len(newEdges), len(trueEdges)
+
+
 
 		return 
 
@@ -126,6 +131,9 @@ class GraphEM:
 	# 	# Initializing worker skill and edge difficulty.
 
 	def Estep_v1(self, graph, observations, difficulties):
+		"""
+		Error Function: Beronoulli trial, with easiness = d
+		"""
 
 		determined_edges = {}
 
@@ -137,15 +145,15 @@ class GraphEM:
 
 			forward_prob = 1
 			for x in observations[e]:
-				forward_prob /= (1.0*(1+d))
+				forward_prob *= 1.0*d
 			for x in observations[reverse_e]:
-				forward_prob *= 1.0*d/(1+d)
+				forward_prob *= 1.0*(1-d)
 
 			backward_prob = 1
 			for x in observations[reverse_e]:
-				backward_prob /= (1.0*(1+d))
+				backward_prob *= 1.0*d
 			for x in observations[e]:
-				backward_prob *= 1.0*d/(1+d)
+				backward_prob *= 1.0*(1-d)
 
 			if forward_prob>backward_prob:
 				determined_edges[e] = forward_prob*1.0/(forward_prob+backward_prob)
@@ -153,29 +161,96 @@ class GraphEM:
 				determined_edges[reverse_e] = backward_prob*1.0/(forward_prob+backward_prob)
 
 		# Cycle Breaking
+		determined_edges = self.breakCycles(graph, determined_edges)
+
+
 
 		return determined_edges
 
 
-	def Mstep_v1(self, directed_graph, observations):
+	def breakCycles(self, graph, determined_edges):
 
-		difficulties = {}
+		# Find if cycles exist
 
-		for e in self.edges:
-			reverse_e = (e[1], e[0])
+		cs = constraints(graph)
+		for loop in cs.loops:
+			
+			minigraphEdges = []
 
-			if e in directed_graph.keys():
-				true_side = e
-				false_side = reverse_e
-			else:
-				true_side = reverse_e
-				false_side = e
+			# Check if cycle
+			miniGraph = {}
+			for e in loop:
+				if e[0] not in miniGraph.keys():
+					miniGraph[e[0]] = []
+				if e[1] not in miniGraph.keys():
+					miniGraph[e[1]] = []
+				if e in determined_edges.keys():
+					miniGraph[e[0]].append(e[1])
+					minigraphEdges.append(e)
+				else:
+					miniGraph[e[1]].append(e[0])
+					minigraphEdges.append((e[1], e[0]))
 
-			diff = (len(observations[true_side])+0.0001)*1.0/(len(observations[true_side])+len(observations[false_side]))
-			difficulties[true_side] = diff
-			difficulties[false_side] = diff
+			flag = True
 
-		return difficulties
+			for k,v in miniGraph.items():
+				if len(v)!=1:
+					flag=False
+					break
+
+			if flag:
+				# print "Cycle"
+				# print miniGraph
+
+				# Break Cycle
+
+				# minVal = 10
+				# breakAwayEdge = 0
+				# for e in minigraphEdges:
+				# 	if determined_edges[e] < minVal:
+				# 		breakAwayEdge = e
+				# 		minVal = determined_edges[e]
+
+				# print breakAwayEdge
+
+				breakAwayEdge = choice(minigraphEdges)
+
+				newVal = 1 - determined_edges[breakAwayEdge]
+
+				del determined_edges[breakAwayEdge]
+				determined_edges[(breakAwayEdge[1], breakAwayEdge[0])] = newVal
+
+
+		return determined_edges
+
+
+	# def Mstep_v1(self, directed_graph, observations):
+	def Mstep_v1(self, undir_graph, directed_edges, observations):
+
+
+		# print directed_graph, observations
+		# return
+
+		difficulties = mStep(undir_graph, directed_edges, observations)
+
+
+		# difficulties = {}
+
+		# for e in self.edges:
+		# 	reverse_e = (e[1], e[0])
+
+		# 	if e in directed_graph.keys():
+		# 		true_side = e
+		# 		false_side = reverse_e
+		# 	else:
+		# 		true_side = reverse_e
+		# 		false_side = e
+
+		# 	diff = (len(observations[true_side])+0.0001)*1.0/(len(observations[true_side])+len(observations[false_side]))
+		# 	difficulties[true_side] = diff
+		# 	difficulties[false_side] = diff
+
+		return difficulties.difficulties
 
 
 
@@ -207,7 +282,12 @@ class GraphEM:
 		while(True):
 
 			new_graph = self.Estep_v1(graph, observations, edgeDifficulty)
-			edgeDifficulties = self.Mstep_v1(new_graph, observations)
+			# edgeDifficulties = self.Mstep_v1(new_graph, observations)
+			edgeDifficulties = self.Mstep_v1(graph, new_graph.keys(), observations)
+
+
+			break
+			
 
 			if new_graph==old_graph:
 				break
@@ -229,17 +309,17 @@ class GraphEM:
 
 # 		undirected_graph = {k:[x for x in pi.graph[k]] for k in pi.graph.keys()}
 # 		for k in sorted(undirected_graph.keys()):
-# 			for v in undirected_graph[k]:
+# 			for v in undirected_graph[k]__:
 # 				undirected_graph[v].append(k)
 
 # 		graph_em = GraphEM(False, numNodes, pi.bidirectionalEdges, 50, undirected_graph, pi.observations, pi.graph, pi.difficulties)
 	# graph_em = GraphEM(True, 0, 0, 0, 0, 0, 0, 0)
 
-pi = ProblemInstance(20, 0.5, 50)
+# pi = ProblemInstance(20, 0.5, 20)
 
-undirected_graph = {k:[x for x in pi.graph[k]] for k in pi.graph.keys()}
-for k in sorted(undirected_graph.keys()):
-	for v in undirected_graph[k]:
-		undirected_graph[v].append(k)
+# undirected_graph = {k:[x for x in pi.graph[k]] for k in pi.graph.keys()}
+# for k in sorted(undirected_graph.keys()):
+# 	for v in undirected_graph[k]:
+# 		undirected_graph[v].append(k)
 
-graph_em = GraphEM(False, 20, pi.bidirectionalEdges, 50, undirected_graph, pi.observations, pi.graph, pi.difficulties)
+# graph_em = GraphEM(False, 20, pi.bidirectionalEdges, 20, undirected_graph, pi.observations, pi.graph, pi.difficulties)
