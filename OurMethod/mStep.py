@@ -2,6 +2,8 @@ from cvxopt import solvers, matrix, log
 from generateConstraints import constraints
 from randomGraphGenerator import ProblemInstance
 from random import uniform
+from numpy.linalg import matrix_rank
+
 
 class mStep:
 
@@ -24,9 +26,8 @@ class mStep:
 		self.G, self.h, self.constraintVariablesToEdges = (probConstraints.G, 
 			probConstraints.h, probConstraints.constraintVariablesToEdges)
 
-
-		for i in xrange(19):
-			print min(self.G[:,i]), max(self.G[:,i])
+		# for i in xrange(19):
+		# 	print min(self.G[:,i]), max(self.G[:,i])
 
 		# self.G = self.G.astype(double)
 		# self.h = self.h.astype(double)
@@ -34,7 +35,8 @@ class mStep:
 		self.n = (len(self.constraintVariablesToEdges) + 
 			len(probConstraints.constraintVariablesToPseudoEdges))
 
-		self.performMStep()
+		d = self.performMStep()
+		print(d)
 
 	def getObjectiveFuncValue(self, x):
 		"""
@@ -50,11 +52,11 @@ class mStep:
 			
 			difficulty = x[k]
 
-			logLikelihood += ( len(self.observations[edge])*log(difficulty)
+			logLikelihood -= ( len(self.observations[edge])*log(difficulty)
 				+ len(self.observations[reverseEdge])*log(1-difficulty) )
 
-			derivativeOfLL[0,k] = (len(self.observations[edge])/difficulty
-				- len(self.observations[reverseEdge])/(1.0-difficulty) )
+			derivativeOfLL[0,k] = -1*(len(self.observations[edge])/difficulty
+				+ len(self.observations[reverseEdge])/(1.0-difficulty) )
 
 		return matrix(logLikelihood,(1,1)), derivativeOfLL
 
@@ -68,8 +70,11 @@ class mStep:
 			
 			difficulty = x[k]
 
-			H[k,k] -= ( len(self.observations[edge])/(difficulty**2)
+			H[k,k] += ( len(self.observations[edge])/(difficulty**2)
 				+ len(self.observations[reverseEdge])/((1-difficulty)**2) )
+
+		for i in xrange(len(self.constraintVariablesToEdges), self.n):
+			H[i,i] = 0.00001
 
 		return z[0,0]*H
 
@@ -78,7 +83,7 @@ class mStep:
 
 		def F(x=None, z=None):
 			if x is None:
-				return (0, matrix(0.99, (self.n,1)))
+				return (0, matrix(0.999, (self.n,1)))
 
 			if max(self.G*x - self.h) > 0:
 				return None
@@ -89,21 +94,24 @@ class mStep:
 				return LL, deltaLL
 
 			H = self.getH(x,z)
-			print LL.size
-			print deltaLL.size
-			print H.size
+
+			# print(H)
+
+			# print LL.size
+			# print deltaLL.size, matrix_rank(deltaLL)
+			# print H.size, matrix_rank(H)
 
 			return LL, deltaLL, H
 
 		A = matrix(0, (1, self.n), 'd')
 		b = matrix(0, (1,1), 'd')
 
-		print A.size
-		print b.size
-		print self.G.size
-		print self.h.size
+		# print A.size, matrix_rank(A)
+		# print b.size, matrix_rank(b)
+		# print self.G.size, matrix_rank(self.G)
+		# print self.h.size, matrix_rank(self.h)
 
-		return solvers.cp(F, A=A, b=b, G=self.G, h=self.h)['x']
+		return solvers.cp(F, G=self.G, h=self.h)['x']
 
 
 graph =  {'a':['b', 'c'],
