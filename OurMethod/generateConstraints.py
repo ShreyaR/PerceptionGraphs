@@ -1,23 +1,23 @@
-from cvxopt import solvers, matrix, spdiag, log
-
-from pprint import pprint
+from cvxopt import matrix
 
 class constraints:
 
-	def __init__(self, undirG, dirG, undirEdges, dirEdges):
+	def __init__(self, undirG, dirEdges):
 		"""
 		undirG: Undirected underlying graph. Useful for identifying cycles or
-			loops in the graph.
-		dirG: Directed graph obtained from the E step of the algorithm. Useful
-			for defining constraints over the loop.
+			loops in the graph. Format: dictionary, with key=node index, value
+			is list of nodes key node is connected to.
+		dirEdges: set of directed edges, where each directed edge is
+			represented by a tuple. First node of tuple is from node, and
+			second node of tuple is to node.
 		"""
 
-		self.undirG = undirG
-		self.dirG = dirG
-		self.undirEdges = undirEdges
-		self.dirEdges = dirEdges
+		loops = self.getLoops(undirG)
+		cSet, x1, x2 = self.getConstraints(loops, dirEdges)
+		self.G,self.h = self.getAbMatrices(cSet, len(x1)+len(x2))
+		self.constraintVariablesToEdges = x1
+		self.constraintVariablesToPseudoEdges = x2
 
-		# loops = self.getLoops(self.undirG)
 
 	def getLoops(self, graph):
 		"""
@@ -251,61 +251,72 @@ class constraints:
 		-----------------------
 		G, h: GX <= h. Of type cvx matrix.
 		"""
-		G = matrix(0, (len(constraintSet),numberOfEdges))
-		h = matrix(0, (len(constraintSet), 1))
+		G = matrix(0, (len(constraintSet)+(2*numberOfEdges),numberOfEdges), 'd')
+		h = matrix(0, (len(constraintSet)+(2*numberOfEdges), 1), 'd')
 
 		count = 0
+
+		#Triplet constraints
 		for i in constraintSet:
 			G[count, i[0]] = 1
 			G[count, i[1]] = -1
 			count += 1
 
-		print(G)
-		print(h)
+		#Domain constraints
+		for i in xrange(numberOfEdges):
+			G[count, i] = -1
+			count+=1
+
+		for i in xrange(numberOfEdges):
+			G[count, i] = 1
+			h[count, 0] = 1
+			count+=1
 
 		return G, h
 
 
 
-test = constraints(0, 0, 0, 0)
-tree = {'a':['b', 'c'],
-		'b':['a'],
-		'c':['a', 'e', 'h', 'j'],
-		'e':['c'],
-		'h':['c', 'f'],
-		'j':['c'],
-		'f':['h', 'd', 'i'],
-		'd':['f'],
-		'i':['f']}
-graph =  {'a':['b', 'c'],
-		'b':['a', 'j', 'c', 'e', 'f'],
-		'c':['a', 'e', 'h', 'j', 'b'],
-		'e':['c', 'b', 'i'],
-		'h':['c', 'f'],
-		'j':['c', 'b'],
-		'f':['b', 'h', 'd', 'i'],
-		'd':['f'],
-		'i':['e', 'f']}
-directedEdges = [
-				('a', 'b'),
-				('a', 'c'),
-				('b', 'c'),
-				('b', 'j'),
-				('c', 'j'),
-				('b', 'e'),
-				('c', 'e'),
-				('b', 'f'),
-				('f', 'i'),
-				('i', 'e'),
-				('f', 'h'),
-				('h', 'c'),
-				('f', 'd')
-				]
 
+# tree = {'a':['b', 'c'],
+# 		'b':['a'],
+# 		'c':['a', 'e', 'h', 'j'],
+# 		'e':['c'],
+# 		'h':['c', 'f'],
+# 		'j':['c'],
+# 		'f':['h', 'd', 'i'],
+# 		'd':['f'],
+# 		'i':['f']}
+# graph =  {'a':['b', 'c'],
+# 		'b':['a', 'j', 'c', 'e', 'f'],
+# 		'c':['a', 'e', 'h', 'j', 'b'],
+# 		'e':['c', 'b', 'i'],
+# 		'h':['c', 'f'],
+# 		'j':['c', 'b'],
+# 		'f':['b', 'h', 'd', 'i'],
+# 		'd':['f'],
+# 		'i':['e', 'f']}
+# directedEdges = [
+# 				('a', 'b'),
+# 				('a', 'c'),
+# 				('b', 'c'),
+# 				('b', 'j'),
+# 				('c', 'j'),
+# 				('b', 'e'),
+# 				('c', 'e'),
+# 				('b', 'f'),
+# 				('f', 'i'),
+# 				('i', 'e'),
+# 				('f', 'h'),
+# 				('h', 'c'),
+# 				('f', 'd')
+# 				]
+# test = constraints(graph, directedEdges)
+# print(test.G)
+# print(test.h)
 # print test.recursiveFindPath(tree, 'a', 'f', {'a'})
-cycles = test.getLoops(graph)
-cSet, x1, x2 = test.getConstraints(cycles, directedEdges)
-test.getAbMatrices(cSet, len(x1)+len(x2))
+# cycles = test.getLoops(graph)
+# cSet, x1, x2 = test.getConstraints(cycles, directedEdges)
+# test.getAbMatrices(cSet, len(x1)+len(x2))
 
 # print cycles
 # print len(cycles)
