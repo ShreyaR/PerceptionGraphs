@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
-# with open('results_ourmethod.txt') as f:
-with open('results_ourmethodv2.txt') as f:
+with open('results_ourmethodv3.txt') as f:
+# with open('results_ourmethodv3.txt') as f:
 	results = {}
 
 	for line in f:

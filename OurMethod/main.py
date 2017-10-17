@@ -6,7 +6,7 @@ from mStep import mStep
 
 # Add in documentation as you have more of it.
 
-f = open('results_ourmethodv2.txt', 'w')
+f = open('results_ourmethodv3.txt', 'w')
 
 class GraphEM:
 
@@ -322,4 +322,4 @@ class GraphEM:
 # 	for v in undirected_graph[k]:
 # 		undirected_graph[v].append(k)
 
-# graph_em = GraphEM(False, 20, pi.bidirectionalEdges, 20, undirected_graph, pi.observations, pi.graph, pi.difficulties)
+# graph_em = GraphEM(False, 20, pi.bidirectionalEdges, 20, undirected_graph, pi.observations, pi.graph, pi.difficulties, 20, 0)

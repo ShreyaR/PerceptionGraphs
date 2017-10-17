@@ -196,7 +196,7 @@ from randomGraphGenerator import ProblemInstance
 
 # Add in documentation as you have more of it.
 
-f = open('results_baselinev2.txt', 'w')
+f = open('results_baselinev3.txt', 'w')
 
 class GraphEM:
 
@@ -410,23 +410,5 @@ class GraphEM:
 			iter += 1
 
 		return edgeDifficulty, new_graph
-
-
-# for w in [5, 10, 20, 100]:
-
-# numWorkers = 20
-# for numNodes in [5, 10, 20, 50]:
-
-# 	for c in xrange(10):
-
-# 		pi = ProblemInstance(numNodes, 0.5, 20)
-
-# 		undirected_graph = {k:[x for x in pi.graph[k]] for k in pi.graph.keys()}
-# 		for k in sorted(undirected_graph.keys()):
-# 			for v in undirected_graph[k]:
-# 				undirected_graph[v].append(k)
-
-# 		graph_em = GraphEM(False, numNodes, pi.bidirectionalEdges, numWorkers, undirected_graph, pi.observations, pi.graph, pi.difficulties)
-# 	# graph_em = GraphEM(True, 0, 0, 0, 0, 0, 0, 0)
 
 

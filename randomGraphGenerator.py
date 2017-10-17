@@ -39,7 +39,7 @@ class ProblemInstance:
 		for w in xrange(num_of_workers):
 			for e in self.graphEdges:
 				diff = self.difficulties[e]
-				accuracy = 1.0/(1+diff)
+				accuracy = diff
 				coin_toss = uniform(0,1)
 				if coin_toss <= accuracy:
 					self.observations[e].append(w)

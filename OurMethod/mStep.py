@@ -36,6 +36,7 @@ class mStep:
 			len(probConstraints.constraintVariablesToPseudoEdges))
 
 		d = self.performMStep()
+		# print(d)
 		
 		self.difficulties = {}
 
@@ -134,6 +135,7 @@ class mStep:
 		# print self.G.size, matrix_rank(self.G)
 		# print self.h.size, matrix_rank(self.h)
 		solvers.options['show_progress'] = False
+		solvers.options['maxiters'] = 30
 		return solvers.cp(F, G=self.G, h=self.h)['x']
 
 

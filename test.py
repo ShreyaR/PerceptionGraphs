@@ -1,14 +1,14 @@
-from randomGraphGenerator import ProblemInstance
+from randomGraphGenerationV2 import ProblemInstance
 from EMWithCycleBreaking.main import GraphEM as Baseline
 from OurMethod.main import GraphEM as OurMethod
 
 numWorkers = 20
 # for numNodes in [5, 10, 15, 20, 25]:
-for numNodes in [5, 10, 15, 20, 50]:
+for numNodes, numChildren in zip([10, 15, 20, 50], [3,4,5,8]):
 
 	for c in xrange(10):
 
-		pi = ProblemInstance(numNodes, 0.5, 20)
+		pi = ProblemInstance(numNodes, 0.5, 20, numChildren)
 
 		undirected_graph = {k:[x for x in pi.graph[k]] for k in pi.graph.keys()}
 		for k in sorted(undirected_graph.keys()):
