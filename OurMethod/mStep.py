@@ -1,8 +1,8 @@
 from cvxopt import solvers, matrix, log
 from generateConstraints import constraints
-from randomGraphGenerator import ProblemInstance
-from random import uniform
-from numpy.linalg import matrix_rank
+# from randomGraphGenerator import ProblemInstance
+# from random import uniform
+# from numpy.linalg import matrix_rank
 
 
 class mStep:
@@ -26,25 +26,16 @@ class mStep:
 		self.G, self.h, self.constraintVariablesToEdges = (probConstraints.G, 
 			probConstraints.h, probConstraints.constraintVariablesToEdges)
 
-		# for i in xrange(19):
-		# 	print min(self.G[:,i]), max(self.G[:,i])
-
-		# self.G = self.G.astype(double)
-		# self.h = self.h.astype(double)
-
 		self.n = (len(self.constraintVariablesToEdges) + 
 			len(probConstraints.constraintVariablesToPseudoEdges))
 
 		d = self.performMStep()
-		# print(d)
-		
+
 		self.difficulties = {}
 
 		for k,v in self.constraintVariablesToEdges.items():
 			self.difficulties[v] = d[k]
 			self.difficulties[(v[1], v[0])] = d[k]
-
-		# print self.difficulties
 
 
 
@@ -71,7 +62,8 @@ class mStep:
 				+ len(self.observations[reverseEdge])*log(1-difficulty) )
 
 			derivativeOfLL[0,k] = -1*(len(self.observations[edge])/difficulty
-				+ len(self.observations[reverseEdge])/(1.0-difficulty) )
+				- len(self.observations[reverseEdge])/(1.0-difficulty) )
+
 
 		return matrix(logLikelihood,(1,1)), derivativeOfLL
 
@@ -90,8 +82,6 @@ class mStep:
 			if difficulty==1:
 				difficulty = 0.9999
 
-			# print difficulty
-
 			H[k,k] += ( len(self.observations[edge])/(difficulty**2)
 				+len(self.observations[reverseEdge])/((1-difficulty)**2) )
 
@@ -105,7 +95,8 @@ class mStep:
 
 		def F(x=None, z=None):
 			if x is None:
-				return (0, matrix(0.5, (self.n,1)))
+				# return (0, matrix(0.5, (self.n,1)))
+				return (0, matrix(0.5, (self.n, 1)))
 
 			if max(self.G*x - self.h) > 0:
 				return None
@@ -117,24 +108,12 @@ class mStep:
 
 			H = self.getH(x,z)
 
-			# print(H)
-
-			# print(H)
-
-			# print LL.size
-			# print deltaLL.size, matrix_rank(deltaLL)
-			# print H.size, matrix_rank(H)
-
 			return LL, deltaLL, H
 
-		A = matrix(0, (1, self.n), 'd')
-		b = matrix(0, (1,1), 'd')
+		# A = matrix(0, (1, self.n), 'd')
+		# b = matrix(0, (1,1), 'd')
 
-		# print A.size, matrix_rank(A)
-		# print b.size, matrix_rank(b)
-		# print self.G.size, matrix_rank(self.G)
-		# print self.h.size, matrix_rank(self.h)
-		solvers.options['show_progress'] = False
+		solvers.options['show_progress'] = True
 		solvers.options['maxiters'] = 30
 		return solvers.cp(F, G=self.G, h=self.h)['x']
 

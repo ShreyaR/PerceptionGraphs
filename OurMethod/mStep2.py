@@ -4,6 +4,11 @@ from scipy.optimize import minimize
 import numpy as np
 from pprint import pprint
 
+# from randomGraphGenerator import ProblemInstance
+# from random import uniform
+# from numpy.linalg import matrix_rank
+
+
 class mStep:
 
 	def __init__(self, undirGraph, dirEdges, observations):
@@ -34,7 +39,7 @@ class mStep:
 		self.constraints = self.getConstraints()
 
 		#Bounds
-		self.bounds = [(0,1) for i in xrange(len(self.constraintVariablesToEdges))]
+		self.bounds = [(0.5,1) for i in xrange(len(self.constraintVariablesToEdges))]
 
 		d = self.performMStep()
 
@@ -94,3 +99,50 @@ class mStep:
 						bounds=self.bounds,
 						constraints=self.constraints,
 						options={'disp':False, 'maxiter':20})
+
+
+# graph =  {'a':['b', 'c'],
+# 		'b':['a', 'j', 'c', 'e', 'f'],
+# 		'c':['a', 'e', 'h', 'j', 'b'],
+# 		'e':['c', 'b', 'i'],
+# 		'h':['c', 'f'],
+# 		'j':['c', 'b'],
+# 		'f':['b', 'h', 'd', 'i'],
+# 		'd':['f'],
+# 		'i':['e', 'f']}
+# directedEdges = [
+# 				('a', 'b'),
+# 				('a', 'c'),
+# 				('b', 'c'),
+# 				('b', 'j'),
+# 				('c', 'j'),
+# 				('b', 'e'),
+# 				('c', 'e'),
+# 				('b', 'f'),
+# 				('f', 'i'),
+# 				('i', 'e'),
+# 				('f', 'h'),
+# 				('h', 'c'),
+# 				('f', 'd')
+# 				]
+
+# observations = {}
+
+# numWorkers = 5
+# for e in directedEdges:
+# 	reverseE = (e[1], e[0])
+
+# 	observations[e] = []
+# 	observations[reverseE] = []
+
+# 	for i in xrange(numWorkers):
+# 		if uniform(0,1) < 0.5:
+# 			observations[e].append(i)
+# 		else:
+# 			observations[reverseE].append(i)
+
+# test = mStep(graph, directedEdges, observations)
+
+# test = constraints(graph, directedEdges)
+# print(test.G)
+# print(test.h)

@@ -1,4 +1,5 @@
 from cvxopt import matrix
+from pprint import pprint
 
 class constraints:
 
@@ -19,6 +20,7 @@ class constraints:
 			self.G,self.h = self.getAbMatrices(cSet, len(x1)+len(x2))
 			self.constraintVariablesToEdges = x1
 			self.constraintVariablesToPseudoEdges = x2
+			self.numTripletConstraints = len(cSet)
 
 
 	def getLoops(self, graph):
@@ -26,7 +28,7 @@ class constraints:
 		Input Parameters:
 		-----------------------
 		graph: undirected graph
-		Output Parameters:
+		Output:
 		-----------------------
 		cycles: List of sets, where each set contains edges (as tuples) that
 			form a cycle.
@@ -142,8 +144,6 @@ class constraints:
 				vertices.add(e[1])
 
 			miniGraph = {x:[] for x in vertices}
-
-			# print "MINIGRAPH", miniGraph
 
 			for e in loop:
 				if e in directedEdges:
@@ -270,13 +270,15 @@ class constraints:
 
 		#Triplet constraints
 		for i in constraintSet:
-			G[count, i[0]] = 1
-			G[count, i[1]] = -1
+			G[count, i[0]] = 1.0
+			G[count, i[1]] = -1.0
 			count += 1
 
 		#Domain constraints
 		for i in xrange(numberOfEdges):
-			G[count, i] = -1
+			G[count, i] = -1.0
+			#TODO: Check next line, if it works.
+			h[count, 0] = 0.0
 			count+=1
 
 		for i in xrange(numberOfEdges):
